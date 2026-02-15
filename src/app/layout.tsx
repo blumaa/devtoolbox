@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Analytics } from "@vercel/analytics/next";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -22,9 +23,10 @@ export default function RootLayout({
             <a href="/" className="text-xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
               🛠 DevToolbox
             </a>
-            <a href="/" className="text-sm text-gray-400 hover:text-gray-200 transition">
-              All Tools
-            </a>
+            <div className="flex gap-4">
+              <a href="/" className="text-sm text-gray-400 hover:text-gray-200 transition">All Tools</a>
+              <a href="/blog" className="text-sm text-gray-400 hover:text-gray-200 transition">Blog</a>
+            </div>
           </div>
         </nav>
 
@@ -37,6 +39,7 @@ export default function RootLayout({
           {/* Ad placeholder - replace with AdSense code */}
         </div>
 
+        <Analytics />
         <footer className="border-t border-gray-800 bg-gray-900/80 py-6 text-center text-gray-500 text-sm">
           <p>© {new Date().getFullYear()} <span className="font-semibold text-gray-400">DevToolbox</span> — Free developer utilities, all client-side.</p>
         </footer>
