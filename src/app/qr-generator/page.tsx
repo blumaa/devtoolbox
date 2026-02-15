@@ -9,80 +9,62 @@ export default function QRGenerator() {
   const [qrDataUrl, setQrDataUrl] = useState('');
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
-  // Simple QR code generation using a canvas-based approach
-  // Note: In a real implementation, you'd use a proper QR library like qrcode
+  // Real QR code generation using qrcode-generator library
   const generateQR = async () => {
     if (!text.trim()) {
       setQrDataUrl('');
       return;
     }
 
-    // For now, we'll create a placeholder QR code visualization
-    // In production, you'd install and use the 'qrcode' npm package
-    const canvas = canvasRef.current;
-    if (!canvas) return;
+    try {
+      // Import the qrcode-generator library dynamically
+      const QRCode = (await import('qrcode-generator')).default;
+      
+      // Map error correction levels
+      const errorCorrectionLevel = {
+        'L': QRCode.ErrorCorrectionLevel.L,
+        'M': QRCode.ErrorCorrectionLevel.M, 
+        'Q': QRCode.ErrorCorrectionLevel.Q,
+        'H': QRCode.ErrorCorrectionLevel.H
+      }[errorCorrection];
 
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
+      // Create QR code instance
+      const qr = QRCode(0, errorCorrectionLevel);
+      qr.addData(text);
+      qr.make();
 
-    canvas.width = size;
-    canvas.height = size;
+      const canvas = canvasRef.current;
+      if (!canvas) return;
 
-    // Create a simple grid pattern as placeholder
-    // This is just for demonstration - replace with actual QR generation
-    const moduleSize = size / 25; // 25x25 grid
-    const modules = generateSimplePattern(text);
+      const ctx = canvas.getContext('2d');
+      if (!ctx) return;
 
-    // Clear canvas
-    ctx.fillStyle = 'white';
-    ctx.fillRect(0, 0, size, size);
+      const modules = qr.getModuleCount();
+      const moduleSize = size / modules;
+      
+      canvas.width = size;
+      canvas.height = size;
 
-    // Draw QR pattern
-    ctx.fillStyle = 'black';
-    for (let row = 0; row < 25; row++) {
-      for (let col = 0; col < 25; col++) {
-        if (modules[row] && modules[row][col]) {
-          ctx.fillRect(col * moduleSize, row * moduleSize, moduleSize, moduleSize);
+      // Clear canvas with white background
+      ctx.fillStyle = 'white';
+      ctx.fillRect(0, 0, size, size);
+
+      // Draw QR code modules
+      ctx.fillStyle = 'black';
+      for (let row = 0; row < modules; row++) {
+        for (let col = 0; col < modules; col++) {
+          if (qr.isDark(row, col)) {
+            ctx.fillRect(col * moduleSize, row * moduleSize, moduleSize, moduleSize);
+          }
         }
       }
+
+      // Convert to data URL
+      setQrDataUrl(canvas.toDataURL());
+    } catch (error) {
+      console.error('QR Code generation failed:', error);
+      setQrDataUrl('');
     }
-
-    // Convert to data URL
-    setQrDataUrl(canvas.toDataURL());
-  };
-
-  // Simple pattern generator (placeholder for real QR encoding)
-  const generateSimplePattern = (input: string) => {
-    const modules = Array(25).fill(null).map(() => Array(25).fill(false));
-    
-    // Create finder patterns (corners)
-    for (let i = 0; i < 7; i++) {
-      for (let j = 0; j < 7; j++) {
-        // Top-left
-        modules[i][j] = (i === 0 || i === 6 || j === 0 || j === 6 || 
-                        (i >= 2 && i <= 4 && j >= 2 && j <= 4));
-        // Top-right
-        modules[i][18 + j] = (i === 0 || i === 6 || j === 0 || j === 6 || 
-                             (i >= 2 && i <= 4 && j >= 2 && j <= 4));
-        // Bottom-left
-        modules[18 + i][j] = (i === 0 || i === 6 || j === 0 || j === 6 || 
-                             (i >= 2 && i <= 4 && j >= 2 && j <= 4));
-      }
-    }
-
-    // Add some data pattern based on input
-    const hash = input.split('').reduce((a, b) => {
-      a = ((a << 5) - a) + b.charCodeAt(0);
-      return a & a;
-    }, 0);
-
-    for (let i = 9; i < 16; i++) {
-      for (let j = 9; j < 16; j++) {
-        modules[i][j] = ((hash + i * j) % 3) === 0;
-      }
-    }
-
-    return modules;
   };
 
   useEffect(() => {
@@ -118,7 +100,7 @@ export default function QRGenerator() {
     <div className="container mx-auto px-4 py-8 max-w-2xl">
       <h1 className="text-3xl font-bold mb-6">QR Code Generator</h1>
       <p className="text-gray-600 mb-6">
-        Generate QR codes for text, URLs, phone numbers, and more. All processing happens in your browser.
+        Generate real QR codes for text, URLs, phone numbers, and more. All processing happens in your browser.
       </p>
 
       {/* Text Input */}
@@ -253,7 +235,8 @@ export default function QRGenerator() {
         <ul className="text-sm text-blue-700 space-y-1">
           <li>• QR codes can store up to 3,000 characters</li>
           <li>• Higher error correction allows the code to work even when damaged</li>
-          <li>• This tool works entirely offline - no data is sent anywhere</li>
+          <li>• This tool generates real, scannable QR codes using industry standards</li>
+          <li>• All processing happens locally - no data is sent anywhere</li>
           <li>• QR codes work with any modern smartphone camera</li>
         </ul>
       </div>
