@@ -8,6 +8,10 @@ export const metadata: Metadata = {
     "Free, fast, client-side developer utilities: JSON formatter, Base64 encoder, regex tester, color palette generator, and more.",
   keywords:
     "developer tools, JSON formatter, base64, regex tester, color palette, CSS gradient, lorem ipsum, markdown preview",
+  icons: {
+    icon: '/icon',
+    apple: '/apple-icon',
+  },
 };
 
 export default function RootLayout({
